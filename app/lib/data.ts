@@ -1,93 +1,94 @@
-import { sql } from '@vercel/postgres';
+import {sql} from '@vercel/postgres';
 import {
-  CustomerField,
-  CustomersTable,
-  InvoiceForm,
-  InvoicesTable,
-  LatestInvoiceRaw,
-  User,
-  Revenue,
+   CustomerField,
+   CustomersTable,
+   InvoiceForm,
+   InvoicesTable,
+   LatestInvoiceRaw,
+   User,
+   Revenue, ShopifyProduct,
 } from './definitions';
-import { formatCurrency } from './utils';
-import { unstable_noStore as noStore } from 'next/cache';
+import {formatCurrency} from './utils';
+import {unstable_noStore as noStore} from 'next/cache';
 
 export async function fetchRevenue() {
-  try {
-    const data = await sql<Revenue>`SELECT * FROM revenue`;
-    return data.rows;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch revenue data.');
-  }
+   try {
+      const data = await sql<Revenue>`SELECT * FROM revenue`;
+      return data.rows;
+   } catch (error) {
+      console.error('Database Error:', error);
+      throw new Error('Failed to fetch revenue data.');
+   }
 }
 
 export async function fetchLatestInvoices() {
-  noStore();
+   noStore();
 
-  try {
-    const data = await sql<LatestInvoiceRaw>`
+   try {
+      const data = await sql<LatestInvoiceRaw>`
       SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
       FROM invoices
       JOIN customers ON invoices.customer_id = customers.id
       ORDER BY invoices.date DESC
       LIMIT 5`;
 
-    return data.rows.map((invoice) => ({
-      ...invoice,
-      amount: formatCurrency(invoice.amount),
-    }));
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch the latest invoices.');
-  }
+      return data.rows.map((invoice) => ({
+         ...invoice,
+         amount: formatCurrency(invoice.amount),
+      }));
+   } catch (error) {
+      console.error('Database Error:', error);
+      throw new Error('Failed to fetch the latest invoices.');
+   }
 }
 
 export async function fetchCardData() {
-  noStore();
+   noStore();
 
-  try {
-    // You can probably combine these into a single SQL query
-    // However, we are intentionally splitting them to demonstrate
-    // how to initialize multiple queries in parallel with JS.
-    const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
-    const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
-    const invoiceStatusPromise = sql`SELECT
+   try {
+      // You can probably combine these into a single SQL query
+      // However, we are intentionally splitting them to demonstrate
+      // how to initialize multiple queries in parallel with JS.
+      const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
+      const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
+      const invoiceStatusPromise = sql`SELECT
          SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS "paid",
          SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
          FROM invoices`;
 
-    const data = await Promise.all([
-      invoiceCountPromise,
-      customerCountPromise,
-      invoiceStatusPromise,
-    ]);
+      const data = await Promise.all([
+         invoiceCountPromise,
+         customerCountPromise,
+         invoiceStatusPromise,
+      ]);
 
-    const numberOfInvoices = Number(data[0].rows[0].count ?? '0');
-    const numberOfCustomers = Number(data[1].rows[0].count ?? '0');
-    const totalPaidInvoices = formatCurrency(data[2].rows[0].paid ?? '0');
-    const totalPendingInvoices = formatCurrency(data[2].rows[0].pending ?? '0');
+      const numberOfInvoices = Number(data[0].rows[0].count ?? '0');
+      const numberOfCustomers = Number(data[1].rows[0].count ?? '0');
+      const totalPaidInvoices = formatCurrency(data[2].rows[0].paid ?? '0');
+      const totalPendingInvoices = formatCurrency(data[2].rows[0].pending ?? '0');
 
-    return {
-      numberOfCustomers,
-      numberOfInvoices,
-      totalPaidInvoices,
-      totalPendingInvoices,
-    };
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to card data.');
-  }
+      return {
+         numberOfCustomers,
+         numberOfInvoices,
+         totalPaidInvoices,
+         totalPendingInvoices,
+      };
+   } catch (error) {
+      console.error('Database Error:', error);
+      throw new Error('Failed to card data.');
+   }
 }
 
 const ITEMS_PER_PAGE = 6;
-export async function fetchFilteredInvoices(
-  query: string,
-  currentPage: number,
-) {
-  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-  try {
-    const invoices = await sql<InvoicesTable>`
+export async function fetchFilteredInvoices(
+   query: string,
+   currentPage: number,
+) {
+   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+   try {
+      const invoices = await sql<InvoicesTable>`
       SELECT
         invoices.id,
         invoices.amount,
@@ -108,18 +109,18 @@ export async function fetchFilteredInvoices(
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
 
-    return invoices.rows;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch invoices.');
-  }
+      return invoices.rows;
+   } catch (error) {
+      console.error('Database Error:', error);
+      throw new Error('Failed to fetch invoices.');
+   }
 }
 
 export async function fetchInvoicesPages(query: string) {
-  noStore();
+   noStore();
 
-  try {
-    const count = await sql`SELECT COUNT(*)
+   try {
+      const count = await sql`SELECT COUNT(*)
     FROM invoices
     JOIN customers ON invoices.customer_id = customers.id
     WHERE
@@ -130,18 +131,18 @@ export async function fetchInvoicesPages(query: string) {
       invoices.status ILIKE ${`%${query}%`}
   `;
 
-    return Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch total number of invoices.');
-  }
+      return Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+   } catch (error) {
+      console.error('Database Error:', error);
+      throw new Error('Failed to fetch total number of invoices.');
+   }
 }
 
 export async function fetchInvoiceById(id: string) {
-  noStore();
+   noStore();
 
-  try {
-    const data = await sql<InvoiceForm>`
+   try {
+      const data = await sql<InvoiceForm>`
       SELECT
         invoices.id,
         invoices.customer_id,
@@ -151,21 +152,21 @@ export async function fetchInvoiceById(id: string) {
       WHERE invoices.id = ${id};
     `;
 
-    const invoice = data.rows.map((invoice) => ({
-      ...invoice,
-      // Convert amount from cents to dollars
-      amount: invoice.amount / 100,
-    }));
+      const invoice = data.rows.map((invoice) => ({
+         ...invoice,
+         // Convert amount from cents to dollars
+         amount: invoice.amount / 100,
+      }));
 
-    return invoice[0];
-  } catch (error) {
-    console.error('Database Error:', error);
-  }
+      return invoice[0];
+   } catch (error) {
+      console.error('Database Error:', error);
+   }
 }
 
 export async function fetchCustomers() {
-  try {
-    const data = await sql<CustomerField>`
+   try {
+      const data = await sql<CustomerField>`
       SELECT
         id,
         name
@@ -173,18 +174,18 @@ export async function fetchCustomers() {
       ORDER BY name ASC
     `;
 
-    return data.rows;
-  } catch (err) {
-    console.error('Database Error:', err);
-    throw new Error('Failed to fetch all customers.');
-  }
+      return data.rows;
+   } catch (err) {
+      console.error('Database Error:', err);
+      throw new Error('Failed to fetch all customers.');
+   }
 }
 
 export async function fetchFilteredCustomers(query: string) {
-  noStore();
+   noStore();
 
-  try {
-    const data = await sql<CustomersTable>`
+   try {
+      const data = await sql<CustomersTable>`
 		SELECT
 		  customers.id,
 		  customers.name,
@@ -202,23 +203,70 @@ export async function fetchFilteredCustomers(query: string) {
 		ORDER BY customers.name ASC
 	  `;
 
-    return data.rows.map((customer) => ({
-      ...customer,
-      total_pending: formatCurrency(customer.total_pending),
-      total_paid: formatCurrency(customer.total_paid),
-    }));
-  } catch (err) {
-    console.error('Database Error:', err);
-    throw new Error('Failed to fetch customer table.');
-  }
+      return data.rows.map((customer) => ({
+         ...customer,
+         total_pending: formatCurrency(customer.total_pending),
+         total_paid: formatCurrency(customer.total_paid),
+      }));
+   } catch (err) {
+      console.error('Database Error:', err);
+      throw new Error('Failed to fetch customer table.');
+   }
 }
 
 export async function getUser(email: string) {
-  try {
-    const user = await sql`SELECT * from USERS where email=${email}`;
-    return user.rows[0] as User;
-  } catch (error) {
-    console.error('Failed to fetch user:', error);
-    throw new Error('Failed to fetch user.');
-  }
+   try {
+      const user = await sql`SELECT * from USERS where email=${email}`;
+      return user.rows[0] as User;
+   } catch (error) {
+      console.error('Failed to fetch user:', error);
+      throw new Error('Failed to fetch user.');
+   }
+}
+
+export async function fetchFromShopify({query, variables = {}}) {
+   const endpoint = process.env.SHOPIFY_STORE_DOMAIN;
+   const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+
+   try {
+      const result = await fetch(`https://${endpoint}/api/2021-10/graphql.json`, {
+         method: 'POST',
+         headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Storefront-Access-Token': key
+         },
+         body: JSON.stringify({query, variables})
+      });
+
+      const jsonResponse = await result.json();
+      return await jsonResponse.data.products.edges;
+   } catch (error) {
+      console.error('Error:', error);
+   }
+}
+
+export async function getAllShopifyProducts(): Promise<ShopifyProduct[]> {
+   noStore();
+
+   return fetchFromShopify({
+      query: `{
+        products(sortKey: TITLE, first: 100) {
+          edges {
+            node {
+              title
+              priceRange {
+                minVariantPrice {
+                  amount
+                  currencyCode
+                }
+                maxVariantPrice {
+                  amount
+                  currencyCode
+                }
+              }
+            }
+          }
+        }
+      }`
+   });
 }

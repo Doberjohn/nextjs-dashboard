@@ -86,3 +86,20 @@ export type InvoiceForm = {
   amount: number;
   status: 'pending' | 'paid';
 };
+
+export type PriceRange = {
+  minVariantPrice: VariantPrice,
+  maxVariantPrice: VariantPrice
+};
+
+export type VariantPrice = {
+  amount: string;
+  currencyCode: string;
+};
+
+export type ShopifyProduct = {
+  node: {
+    title: string;
+    priceRange: PriceRange;
+  }
+};

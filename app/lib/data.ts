@@ -224,17 +224,17 @@ export async function getUser(email: string) {
    }
 }
 
-export async function fetchFromShopify({query, variables = {}}) {
-   const endpoint = process.env.SHOPIFY_STORE_DOMAIN;
-   const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+export async function fetchFromShopify({query, variables = {}}: {query: string, variables?: object}) {
+   const endpoint = process.env.SHOPIFY_STORE_DOMAIN!;
+   const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN!;
 
    try {
       const result = await fetch(`https://${endpoint}/api/2021-10/graphql.json`, {
          method: 'POST',
-         headers: {
+         headers: new Headers({
             'Content-Type': 'application/json',
             'X-Shopify-Storefront-Access-Token': key
-         },
+         }),
          body: JSON.stringify({query, variables})
       });
 

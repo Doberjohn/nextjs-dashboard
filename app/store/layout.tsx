@@ -130,8 +130,8 @@ const navigation = {
    ],
 }
 
-function classNames(...classes) {
-   return classes.filter(Boolean).join(' ')
+function classNames(...classes: string[]) {
+   return classes.filter(Boolean).join(' ');
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -205,7 +205,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                                             {category.featured.map((item) => (
                                                                <div key={item.name} className="group relative text-base sm:text-sm">
                                                                   <div className="aspect-h-1 aspect-w-1 overflow-hidden rounded-lg bg-gray-100 group-hover:opacity-75">
-                                                                     <img
+                                                                     <Image
                                                                         src={item.imageSrc}
                                                                         alt={item.imageAlt}
                                                                         className="object-cover object-center"

@@ -514,7 +514,7 @@ const CurrencyIcon = () => {
          width={20}
          height={15}
          src="/flag-canada.svg"
-         alt=""
+         alt="Selected currency icon"
          className="block h-auto w-5 flex-shrink-0"
       />
    )

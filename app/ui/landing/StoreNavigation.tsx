@@ -140,7 +140,7 @@ export default function StoreNavigation() {
    )
 }
 
-const MobileMenu = ({open, setOpen}) => {
+const MobileMenu = ({open, setOpen}: {open: boolean, setOpen: (v: boolean) => void}) => {
    return (
       <Transition.Root show={open} as={Fragment}>
          <Dialog as="div" className="relative z-40 lg:hidden" onClose={setOpen}>
@@ -271,7 +271,7 @@ const MobileMenu = ({open, setOpen}) => {
    )
 }
 
-const DesktopMenu = ({setOpen}) => {
+const DesktopMenu = ({setOpen}: {setOpen: (v: boolean) => void}) => {
    return (
       <header className="relative bg-white">
          <nav aria-label="Top" className="mx-auto px-4 sm:px-6 lg:px-8">
@@ -494,7 +494,7 @@ const MobileCurrencySection = () => {
    )
 }
 
-const MobileOpenMenu = ({setOpen}) => {
+const MobileOpenMenu = ({setOpen}: {setOpen: (v: boolean) => void}) => {
    return (
       <button
          type="button"

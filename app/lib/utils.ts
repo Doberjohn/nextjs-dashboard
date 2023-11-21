@@ -67,3 +67,7 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
     totalPages,
   ];
 };
+
+export function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(' ');
+}

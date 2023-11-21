@@ -8,8 +8,8 @@ export default function RootLayout({children}: {
    return (
       <html lang="en">
       <head>
-         <title>Megabyte Concept Store</title>
-         <meta name="description" content="Your meta description goes here."/>
+         <title>Megabyte Concept Wall Art Store</title>
+         <meta name="description" content="Megabyte Concept Digital Arts brings te largest collection of stunning wall art tailored to your house"/>
       </head>
       <body className={`${inter.className} antialiased`}>
       {children}

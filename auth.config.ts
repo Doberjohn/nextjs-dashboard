@@ -6,17 +6,16 @@ export const authConfig = {
    },
    callbacks: {
       authorized({ auth, request: { nextUrl } }) {
-         console.log('here');
          const isLoggedIn = !!auth?.user;
-         const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
-         if (isOnDashboard) {
-            return isLoggedIn;
-             // Redirect unauthenticated users to login page
+         const LandingPage = nextUrl.pathname === '/';
+         if (LandingPage) {
+            if (isLoggedIn) return true;
+            return Response.redirect(new URL('/login', nextUrl));
          } else if (isLoggedIn) {
-            return Response.redirect(new URL('/dashboard', nextUrl));
+            return Response.redirect(new URL('/', nextUrl));
          }
          return true;
       },
    },
-   providers: [], // Add providers with an empty array for now,
-} satisfies NextAuthConfig;
+   providers: [], // Add providers with an empty array for now
+};

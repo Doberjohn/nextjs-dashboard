@@ -277,7 +277,7 @@ const DesktopMenu = ({setOpen}: {setOpen: (v: boolean) => void}) => {
          <nav aria-label="Top" className="mx-auto px-4 sm:px-6 lg:px-8">
             <div className="border-b border-gray-200">
                <div className="flex justify-between h-16 items-center">
-                  <MobileOpenMenu setOpen={setOpen}/>
+                  <MobileOpenMenuButton setOpen={setOpen}/>
                   <div className="flex lg:ml-0">
                      <CompanyLogo/>
                      <Popover.Group className="hidden lg:ml-8 lg:block lg:self-stretch">
@@ -494,7 +494,7 @@ const MobileCurrencySection = () => {
    )
 }
 
-const MobileOpenMenu = ({setOpen}: {setOpen: (v: boolean) => void}) => {
+const MobileOpenMenuButton = ({setOpen}: {setOpen: (v: boolean) => void}) => {
    return (
       <button
          type="button"
@@ -513,7 +513,7 @@ const CurrencyIcon = () => {
       <Image
          width={20}
          height={15}
-         src="/flag-canada.svg"
+         src="/flag-usa.svg"
          alt="Selected currency icon"
          className="block h-auto w-5 flex-shrink-0"
       />
